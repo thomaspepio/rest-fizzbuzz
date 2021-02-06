@@ -15,17 +15,21 @@ func FizzBuzz(number, fizzer, buzzer int, fizz, buzz string) (string, error) {
 		return "", errors.New("number cannot be less than or equal to zero")
 	}
 
-	if (number%fizzer == 0) && (number%buzzer == 0) {
+	if divisibleBy(number, fizzer) && divisibleBy(number, buzzer) {
 		return fizz + buzz, nil
 	}
 
-	if number%fizzer == 0 {
+	if divisibleBy(number, fizzer) {
 		return fizz, nil
 	}
 
-	if number%buzzer == 0 {
+	if divisibleBy(number, buzzer) {
 		return buzz, nil
 	}
 
 	return strconv.Itoa(number), nil
+}
+
+func divisibleBy(dividend, divisor int) bool {
+	return dividend%divisor == 0
 }
