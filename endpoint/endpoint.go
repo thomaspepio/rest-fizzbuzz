@@ -5,17 +5,22 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/swaggo/gin-swagger/swaggerFiles"
+	_ "github.com/thomaspepio/rest-fizzbuzz/endpoint/docs" // import of swagger docs : see README.md and make doc
 	"github.com/thomaspepio/rest-fizzbuzz/service"
 
 	"github.com/gin-gonic/gin"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 const (
+	v1 = "/1"
+
 	// URL for the fizzbuzz API in V1
-	v1FizzBuzz = "/1/fizzbuzz"
+	fizzBuzzURL = "/fizzbuzz"
 
 	// URL for the stats API in V1
-	v1Stats = "/1/stats"
+	statsURL = "/stats"
 
 	// LimitParam : query parameter that sets the limit up to which we compute a fizzbuzz
 	LimitParam = "limit"
@@ -39,11 +44,46 @@ const (
 // URLCounter : type alias for a map service.FizzBuzzRequest => int
 type URLCounter = map[service.FizzBuzzRequest]int
 
+type EndpointError struct {
+	ErrorMessage string `json:"errorMessage"`
+}
+
 // Router : return the endpoints of the application
-func SetupRouter(urlCounter URLCounter) *gin.Engine {
+// @title Fizzbuzz API
+// @version 1.0
+// @description An API that computes fizzbuzzes
+// BasePath /1
+func SetupRouter(port string, urlCounter URLCounter) *gin.Engine {
 	router := gin.Default()
 
-	router.GET(v1FizzBuzz, func(context *gin.Context) {
+	v1 := router.Group(v1)
+	{
+		v1.GET(fizzBuzzURL, V1FizzBuzz(urlCounter))
+		v1.GET(statsURL, V1Stats(urlCounter))
+	}
+
+	url := ginSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", port))
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
+	return router
+}
+
+// V1FizzBuzz : returns a gin.HandlerFunc handler for FizzBuzz API calls
+// @Summary Computes Fizzbuzz
+// @Description get fizzbuzz computation
+// @Accept json
+// @Produce json
+// @Param limit query int true "Limit up to which fizzbuzz is computed"
+// @Param fizzer query int true "First divisor : all its multiples will be replaced by @fizz"
+// @Param buzzer query int true "Second divisor: all its multiples will be replaced by @buzz"
+// @Param fizz query string true "Output for all numbers divisible by @fizzer (numbers divisible by both will output as the concatenation of @fizz@uzz)"
+// @Param buzz query string true "Output for all numbers divisible by @buzzer (numbers divisible by both will output as the concatenation of @fizz@uzz)"
+// @Success 200 {array} string
+// @Failure 400 {object} EndpointError
+// @Failure 500 {object} EndpointError
+// @Router /1/fizzbuzz [get]
+func V1FizzBuzz(urlCounter URLCounter) gin.HandlerFunc {
+	return func(context *gin.Context) {
 		limit := context.Query(LimitParam)
 		fizzer := context.Query(FizzerParam)
 		buzzer := context.Query(BuzzerParam)
@@ -51,13 +91,13 @@ func SetupRouter(urlCounter URLCounter) *gin.Engine {
 		buzz := context.Query(BuzzParam)
 
 		if (limit == "") || (fizzer == "") || (buzzer == "") || (fizz == "") || (buzz == "") {
-			context.JSON(http.StatusBadRequest, gin.H{"error": "at least one mandatory parameter is absent"})
+			context.JSON(http.StatusBadRequest, EndpointError{"at least one mandatory parameter is absent"})
 		} else if !isANumber(limit) {
-			context.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf(paramNotANumber, LimitParam)})
+			context.JSON(http.StatusBadRequest, EndpointError{fmt.Sprintf(paramNotANumber, LimitParam)})
 		} else if !isANumber(fizzer) {
-			context.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf(paramNotANumber, FizzerParam)})
+			context.JSON(http.StatusBadRequest, EndpointError{fmt.Sprintf(paramNotANumber, FizzerParam)})
 		} else if !isANumber(buzzer) {
-			context.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf(paramNotANumber, BuzzerParam)})
+			context.JSON(http.StatusBadRequest, EndpointError{fmt.Sprintf(paramNotANumber, BuzzerParam)})
 		} else {
 			limitToInt, _ := strconv.Atoi(limit)
 			fizzerToInt, _ := strconv.Atoi(fizzer)
@@ -74,14 +114,27 @@ func SetupRouter(urlCounter URLCounter) *gin.Engine {
 			result, err := service.ComputeFizzBuzz(&fizzBuzzRequest)
 
 			if err != nil {
-				context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				context.JSON(http.StatusInternalServerError, EndpointError{err.Error()})
 			} else {
-				context.JSON(http.StatusOK, gin.H{"result": result})
+				context.JSON(http.StatusOK, result)
 			}
 		}
-	})
+	}
+}
 
-	router.GET(v1Stats, func(context *gin.Context) {
+type StatsResponse struct {
+	Request service.FizzBuzzRequest `json:"request"`
+	Count   int                     `json:"count"`
+}
+
+// V1Stats : returns statistics about the most popular searches
+// @Summary Statistics endpoint
+// @Description returns statistics about the most popular searches
+// @Produce json
+// @Success 200 {object} StatsResponse
+// @Router /1/stats [get]
+func V1Stats(urlCounter URLCounter) gin.HandlerFunc {
+	return func(context *gin.Context) {
 		var topRequest service.FizzBuzzRequest
 		count := 0
 
@@ -92,10 +145,8 @@ func SetupRouter(urlCounter URLCounter) *gin.Engine {
 			}
 		}
 
-		context.JSON(http.StatusOK, gin.H{"mostRequested": topRequest, "count": count})
-	})
-
-	return router
+		context.JSON(http.StatusOK, StatsResponse{topRequest, count})
+	}
 }
 
 func isANumber(allgedNumber string) bool {

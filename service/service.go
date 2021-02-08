@@ -12,11 +12,11 @@ const (
 
 // FizzBuzzRequest : a request for a FizzBuzz computation.
 type FizzBuzzRequest struct {
-	Limit  int
-	Fizzer int
-	Buzzer int
-	Fizz   string
-	Buzz   string
+	Limit  int    `json:"limit"`
+	Fizzer int    `json:"fizzer"`
+	Buzzer int    `json:"buzzer"`
+	Fizz   string `json:"fizz"`
+	Buzz   string `json:"buzz"`
 }
 
 // FizzBuzzResponse : type alias for a list of string.

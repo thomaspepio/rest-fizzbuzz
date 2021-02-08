@@ -22,6 +22,6 @@ func main() {
 	}
 
 	urlCounter := map[service.FizzBuzzRequest]int{}
-	router := endpoint.SetupRouter(urlCounter)
+	router := endpoint.SetupRouter(port, urlCounter)
 	router.Run(":" + port)
 }

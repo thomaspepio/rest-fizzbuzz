@@ -1,22 +1,22 @@
 # Fizzbuzz REST server
 
+### Endpoints
+All endpoints are documented under http://host:port/swagger/index.html
+
 ### Project manipulation and layout
 
-#### Manipulation
-All commands are to be run at the root of the project
+#### Project manipulation
+A Makefile assists for all tasks.
 
-##### Running the tests
-With code coverage : `go test --coverprofile=coverage.out ./... && go tool cover -func=coverage.out`
-
-Without code coverage : `go test ./...`
-
-##### Building the project
-`go get && go build`
-
-##### Running the app
-Provided the project is built : launch `./rest-fizzbuzz`
-
-A server should start on "localhost:8080" (TODO : make the port parametrizable)
+Supported commands :
+    - _build_ : downloads dependencies and builds the server binary
+    - _start_ : starts the binary, you specify the port on which you want the app to start with `PORT=<port of your choice>`
+    - _test_ : runs the app tests
+    - _test-coverage_ : run the app tests and provides a `coverage.out`
+    - _docs_ : make swagger documentation
 
 #### Layout
 - _domain_ : business logic in the form of pure functions (no side effects performed)
+
+### Next steps
+    - Cache : it is not necessary to compute each fizzbuzz request from scratch each time. We should implement an incremental cache.

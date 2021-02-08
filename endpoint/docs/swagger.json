@@ -1,0 +1,141 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "An API that computes fizzbuzzes",
+        "title": "Fizzbuzz API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/1/fizzbuzz": {
+            "get": {
+                "description": "get fizzbuzz computation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Computes Fizzbuzz",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit up to which fizzbuzz is computed",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "First divisor : all its multiples will be replaced by @fizz",
+                        "name": "fizzer",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Second divisor: all its multiples will be replaced by @buzz",
+                        "name": "buzzer",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Output for all numbers divisible by @fizzer (numbers divisible by both will output as the concatenation of @fizz@uzz)",
+                        "name": "fizz",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Output for all numbers divisible by @buzzer (numbers divisible by both will output as the concatenation of @fizz@uzz)",
+                        "name": "buzz",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/endpoint.EndpointError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/endpoint.EndpointError"
+                        }
+                    }
+                }
+            }
+        },
+        "/1/stats": {
+            "get": {
+                "description": "returns statistics about the most popular searches",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Statistics endpoint",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/endpoint.StatsResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "endpoint.EndpointError": {
+            "type": "object",
+            "properties": {
+                "errorMessage": {
+                    "type": "string"
+                }
+            }
+        },
+        "endpoint.StatsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "request": {
+                    "$ref": "#/definitions/service.FizzBuzzRequest"
+                }
+            }
+        },
+        "service.FizzBuzzRequest": {
+            "type": "object",
+            "properties": {
+                "buzz": {
+                    "type": "string"
+                },
+                "buzzer": {
+                    "type": "integer"
+                },
+                "fizz": {
+                    "type": "string"
+                },
+                "fizzer": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
