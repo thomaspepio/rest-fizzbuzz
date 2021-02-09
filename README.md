@@ -9,6 +9,11 @@ A more detailed documentation can be found under http://localhost:port/swagger/i
 
 ### Project manipulation and layout
 
+#### Requirements
+- Golang >= 1.15.6
+- `$GOPATH` should be set
+- `$PATH` should reference `$GOPATH/bin`
+
 #### Project manipulation
 A Makefile assists for all tasks.
 
@@ -26,7 +31,10 @@ Supported commands :
 By default, typing `make` at the root of the project should run all the necessary steps for a `make run` to succeed.
 
 #### Layout
-- _domain_ : business logic in the form of pure functions (no side effects performed)
+- _domain_ : business logic (the concrete fizzbuzz algorithm) in the form of pure functions (no side effects performed)
+- _service_ : implementation of the fizzbuzz service, with specific input and ouput types
+- _endopint_ : HTTP API layer, matches HTTP semantics with the service layer
+- _constant_ : constants used across various packages
 
 ### Next steps
 - Cache : it is not necessary to compute each fizzbuzz request from scratch each time. We should implement an incremental cache.
